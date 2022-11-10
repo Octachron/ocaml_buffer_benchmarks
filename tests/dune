@@ -1,0 +1,1 @@
+(test (name safety) (libraries buffer))
