@@ -15,4 +15,5 @@ plot q using 0:1 w l t "std", \
 q using 0:2 w l t "std nospill", \
 q using 0:3 w l t "safe", \
 q using 0:4 w l t "safe nospill", \
-q using 0:5 w l t "data safe"
+q using 0:5 w l t "data safe", \
+q using 0:6 w l t "simplified"

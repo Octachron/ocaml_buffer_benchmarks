@@ -8,7 +8,8 @@ let impls = Variants.[|
     std_nospill;
     safe;
     safe_nospill;
-    data
+    data;
+    simplified;
 |]
 
 
