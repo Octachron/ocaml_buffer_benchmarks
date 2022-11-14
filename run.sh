@@ -1,8 +1,17 @@
 #!/usr/bin/env sh
 
-niter=$1
-nsample=$2
-mode=$3
+addition=$1
+reset=$2
+samples=$3
 
-dune exec ./run/run.exe -- -niter=$niter -nsample=$nsample -mode=$mode > data/${mode}_${niter}_${nsample}.data
-gnuplot -e "niter=$1" -e "nsample=$2" -e "mode=\"$3\"" plot/quantiles.plot
+
+run_once () {
+local mode=$1
+dune exec ./run/run.exe -- -reset=$reset -addition=$addition -samples=$samples -mode=$mode \
+    > data/mode=${mode}_addition=${addition}_reset=${reset}_samples=${samples}.data
+gnuplot -e "addition=${addition}" -e "reset=${reset}" -e "nsample=${samples}" \
+    -e "mode=\"${mode}\"" plot/quantiles.plot
+}
+
+run_once "char"
+run_once "string"

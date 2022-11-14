@@ -1,5 +1,5 @@
 type t = {
   name:string;
-  string: int -> unit;
-  char: int -> unit
+  string: reset:int -> addition:int -> unit;
+  char: reset:int -> addition:int -> unit
 }

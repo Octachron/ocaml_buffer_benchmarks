@@ -7,10 +7,10 @@ set key right top;
 set ylabel "times"
 set xlabel "rank"
 
-q="data/".mode."_".niter."_".nsample.".data"
+q="data/mode=".mode."_addition=".addition."_reset=".reset."_samples=".nsample.".data"
 
 
-set output "graphics/".mode."_".niter."_".nsample.".pdf"
+set output "graphics/mode=".mode."_addition=".addition."_reset=".reset."_sample=".nsample.".pdf"
 plot q using 0:1 w l t "std", \
 q using 0:2 w l t "std nospill", \
 q using 0:3 w l t "safe", \

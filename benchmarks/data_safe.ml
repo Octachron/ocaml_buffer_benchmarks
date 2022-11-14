@@ -2,20 +2,20 @@ module Buffer= Buffer.Data
 let name = "data"
 
 
-let char n =
+let char ~reset ~addition =
   let buf = Buffer.create 1 in
-  for _ = 1 to n do
+  for _ = 1 to reset do
     Buffer.reset buf;
-    for _ = 1 to 1050 do
+    for _ = 1 to addition do
       Buffer.add_char buf 'a';
     done;
   done
 
-let string n =
+let string ~reset ~addition =
   let buf = Buffer.create 1 in
-  for _ = 1 to n do
+  for _ = 1 to reset do
     Buffer.reset buf;
-    for i = 1 to 1050 do
+    for i = 1 to addition do
       Buffer.add_string buf (Strings.get i);
     done;
   done
