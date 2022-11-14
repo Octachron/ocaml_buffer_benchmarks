@@ -14,10 +14,9 @@ let impls = Variants.[|
 
 
 let sample_once ~reset ~addition impl  =
-  let time_start = Sys.time () in
+  let counter = Mtime_clock.counter () in
   let () = ignore (impl  ~reset ~addition) in
-  let time = Sys.time () in
-  time -. time_start
+  Mtime.Span.to_s @@ Mtime_clock.count counter
 
 let sample ~samples ~reset ~addition impl =
   let a = Array.init samples (fun _ -> sample_once ~reset ~addition impl) in
