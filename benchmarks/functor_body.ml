@@ -1,4 +1,4 @@
-let char ~reset ~addition =
+let char {Type.reset; addition; _} =
   let buf = Buffer.create 1 in
   for _ = 1 to reset do
     Buffer.reset buf;
@@ -7,7 +7,7 @@ let char ~reset ~addition =
     done;
   done
 
-let string ~reset ~addition =
+let string {Type.reset; addition; _ } =
   let buf = Buffer.create 1 in
   for _ = 1 to reset do
     Buffer.reset buf;
@@ -16,4 +16,6 @@ let string ~reset ~addition =
     done;
   done
 
-let benchmark = {Type.name;char;string}
+#include "fasta3.ml"
+
+let benchmark = {Type.name;char;string;fasta3}
