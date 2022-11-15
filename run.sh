@@ -15,14 +15,18 @@ gnuplot -e "params=\"${params}\"" -e "nsample=${samples}" \
     -e "mode=\"${mode}\"" plot/quantiles.plot
 }
 
-run_once "char"
-run_once "string"
-
-
-mode="fasta3"
-params="size=${size}"
+run_size () {
+    local mode=$1
+    local params="size=${size}"
 dune exec ./run/run.exe -- -size=$size -samples=$samples -mode=$mode \
     -o "data/mode=${mode}_${params}_samples=${samples}.data" \
     > /dev/null
 gnuplot -e "params=\"${params}\"" -e "nsample=${samples}" \
     -e "mode=\"${mode}\"" plot/quantiles.plot
+}
+
+
+run_once "char"
+run_once "string"
+run_size "fasta3"
+run_size "tree"
