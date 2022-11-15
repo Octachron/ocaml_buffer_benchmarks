@@ -31,7 +31,7 @@ let _ =
 end
 
 
-module Safe = Test(Buffer.Safe)
-module Safe_nospill = Test(Buffer.Safe_nospill)
-module Data_Safe = Test(Buffer.Data)
-module Simplified = Test(Buffer.Simplified)
+module Safe = Test(Buffers.Safe)
+module Safe_nospill = Test(Buffers.Safe_nospill)
+module Data_Safe = Test(Buffers.Data)
+module Simplified = Test(Buffers.Simplified)

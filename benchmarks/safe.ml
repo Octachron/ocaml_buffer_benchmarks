@@ -1,4 +1,4 @@
-module Buffer= Buffer.Safe
+module Buffer= Buffers.Safe
 let name = "safe"
 
 

@@ -1,4 +1,4 @@
 (executable
  (name run)
- (libraries mtime mtime.clock.os benchmarks buffer)
+ (libraries mtime mtime.clock.os benchmarks buffers)
 )

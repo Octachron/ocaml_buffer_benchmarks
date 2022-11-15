@@ -1,4 +1,4 @@
-module Buffer= Buffer.Std_nospill
+module Buffer= Buffers.Std_nospill
 let name = "std_nospill"
 
 #include "functor_body.ml"

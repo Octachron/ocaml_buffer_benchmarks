@@ -1,6 +1,6 @@
 (library
  (name benchmarks)
- (libraries buffer)
+ (libraries buffers)
  (modules :standard \ functor_body)
  (preprocess (action (run %{bin:cppo} -V OCAML:%{ocaml_version} %{input-file})))
 )
