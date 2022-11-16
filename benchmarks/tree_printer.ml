@@ -95,7 +95,7 @@ let init {Type.size; _ } =
 let run t =
   let b = Buffer.create 1000 in
   let () = add_tree b t in
-  print_string @@ Buffer.contents b
+  ignore @@ Buffer.contents b
 end
 
 

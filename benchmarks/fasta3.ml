@@ -100,8 +100,7 @@ let homosapiens = [| ('a', 0.3029549426680);    ('c', 0.1979883004921);
 let with_buffer f =
   let b = Buffer.create 1000 in
   f b;
-  output_string stdout (Buffer.contents b);
-  flush stdout
+ ignore (Buffer.contents b)
 
 let run {Type.size=n; _ } =
   with_buffer @@ make_repeat_fasta "ONE" "Homo sapiens alu" alu (n*2);

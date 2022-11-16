@@ -1,4 +1,15 @@
-(executable
- (name run)
+(library
+ (name runner) (modules runner)
  (libraries mtime mtime.clock.os benchmarks buffers)
+ (wrapped false)
+)
+
+(executable
+ (name run) (modules run)
+ (libraries runner)
+)
+
+(executable
+ (name all) (modules all)
+ (libraries runner)
 )

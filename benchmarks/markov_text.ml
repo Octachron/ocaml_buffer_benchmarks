@@ -685,6 +685,6 @@ let run {parameters; ngram; tables = t } =
   in
   let b = Buffer.create 1000 in
   word b parameters.Type.size t ngram (ref None);
-  print_string (Buffer.contents b)
+  ignore (Buffer.contents b)
 
 let benchmark = Type.Benchmark {init;run}
