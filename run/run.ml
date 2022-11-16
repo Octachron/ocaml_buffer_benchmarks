@@ -30,11 +30,13 @@ type mode =
   | Char
   | Fasta3
   | Tree
+  | Markov
 let (.%()) (impl:Ty.t) mode = match mode with
   | Char -> impl.char
   | String -> impl.string
   | Fasta3 -> impl.fasta3
   | Tree -> impl.tree
+  | Markov -> impl.markov
 
 module Arg = struct
 
@@ -63,6 +65,7 @@ let parse () =
     | "char" -> Char
     | "fasta3" -> Fasta3
     | "tree" -> Tree
+    | "markov" -> Markov
     | _ -> failwith "bad mode"
   in
   let parameters = { Ty.reset; addition; size} in

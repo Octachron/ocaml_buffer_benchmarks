@@ -13,4 +13,5 @@ type t = {
   char: benchmark;
   fasta3: benchmark;
   tree: benchmark;
+  markov: benchmark;
 }

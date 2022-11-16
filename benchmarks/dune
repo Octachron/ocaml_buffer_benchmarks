@@ -1,7 +1,7 @@
 (library
  (name benchmarks)
- (libraries buffers)
- (modules :standard \ functor_body fasta3 tree_printer)
- (preprocessor_deps functor_body.ml fasta3.ml tree_printer.ml)
+ (libraries buffers uuseg.string)
+ (modules :standard \ functor_body fasta3 tree_printer markov_text)
+ (preprocessor_deps functor_body.ml fasta3.ml tree_printer.ml markov_text.ml)
  (preprocess (action (run %{bin:cppo} -V OCAML:%{ocaml_version} %{input-file})))
 )

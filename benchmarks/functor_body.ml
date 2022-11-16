@@ -29,6 +29,13 @@ module Fasta3 = struct
 end
 let fasta3 = Fasta3.benchmark
 
+module Markov = struct
+#include "markov_text.ml"
+end
+let markov = Markov.benchmark
+
+
+
 #include "tree_printer.ml"
 
-let benchmark = {Type.name;char;string;fasta3;tree}
+let benchmark = {Type.name;char;string;fasta3;tree;markov}
