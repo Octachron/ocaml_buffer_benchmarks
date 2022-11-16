@@ -7,6 +7,7 @@
  *)
 
 (* Random number generator *)
+
 let im = 139968
 and ia = 3877
 and ic = 29573
@@ -102,7 +103,9 @@ let with_buffer f =
   output_string stdout (Buffer.contents b);
   flush stdout
 
-let fasta3 {Type.size=n; _ } =
+let run {Type.size=n; _ } =
   with_buffer @@ make_repeat_fasta "ONE" "Homo sapiens alu" alu (n*2);
   with_buffer @@ make_random_fasta "TWO" "IUB ambiguity codes" iub (n*3);
   with_buffer @@ make_random_fasta "THREE" "Homo sapiens frequency" homosapiens (n*5)
+
+let benchmark = Type.Benchmark { init=Fun.id; run }

@@ -1,4 +1,4 @@
-module Inner = struct
+module Tree_benchmark = struct
 
 type 'a t = { value:'a; subtrees:'a t list }
 
@@ -86,15 +86,17 @@ let rec tree value_width nsubtrees d =
   { value; subtrees }
 
 
-let run ~value_width ~nsubtree ~depth =
-  let t = tree value_width nsubtree depth in
+let init {Type.size; _ } =
+  let value_width = 20 in
+  let nsubtree = 10 in
+  let depth = int_of_float ( log (float size) /. log (float nsubtree)) in
+  tree value_width nsubtree depth
+
+let run t =
   let b = Buffer.create 1000 in
   let () = add_tree b t in
   print_string @@ Buffer.contents b
 end
 
-let tree {Type.size; _ } =
-  let value_width = 20 in
-  let nsubtree = 10 in
-  let depth = int_of_float ( log (float size) /. log (float nsubtree)) in
-  Inner.run ~value_width ~nsubtree ~depth
+
+let tree = let open Tree_benchmark in Type.Benchmark { init; run }

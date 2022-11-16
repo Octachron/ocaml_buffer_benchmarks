@@ -4,10 +4,13 @@ type parameters = {
   size:int;
 }
 
+type benchmark =
+    Benchmark: { init: parameters -> 'a; run: 'a -> unit} -> benchmark
+
 type t = {
   name:string;
-  string: parameters -> unit;
-  char: parameters -> unit;
-  fasta3: parameters -> unit;
-  tree: parameters -> unit
+  string: benchmark;
+  char: benchmark;
+  fasta3: benchmark;
+  tree: benchmark;
 }
