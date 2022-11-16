@@ -17,5 +17,7 @@ let string {Type.reset; addition; _ } =
   done
 
 #include "fasta3.ml"
+#include "tree_printer.ml"
 
-let benchmark = {Type.name;char;string;fasta3}
+
+let benchmark = {Type.name;char;string;fasta3;tree}
