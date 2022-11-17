@@ -20,8 +20,8 @@ type t =
   mutable position : int;
   initial_buffer : bytes}
 (* Invariants: all parts of the code preserve the invariants that:
-   - [0 <= b.position <= b.length]
-   - [b.length = Bytes.length b.buffer]
+   - [0 <= b.position <= Bytes.length b]
+   in absence of race conditions.
 
    Note in particular that [b.position = b.length] is legal,
    it means that the buffer is full and will have to be extended
@@ -47,13 +47,13 @@ let blit src srcoff dst dstoff len =
              || dstoff < 0 || dstoff > (Bytes.length dst) - len
   then invalid_arg "Buffer.blit"
   else
-    Bytes.unsafe_blit src.buffer srcoff dst dstoff len
+    Bytes.blit src.buffer srcoff dst dstoff len
 
 
 let nth b ofs =
   if ofs < 0 || ofs >= b.position then
    invalid_arg "Buffer.nth"
-  else Bytes.unsafe_get b.buffer ofs
+  else Bytes.get b.buffer ofs
 
 
 let length b = b.position
@@ -103,36 +103,37 @@ let resize b more =
      of [b] happen before both of them or after both of them.
 
      We therefore assume that [b.position] may change at these allocations,
-     and check that the [b.position + more <= b.length] postcondition
+     and check that the [b.position + more <= Bytes.length b.buffer] postcondition
      holds for both values of [b.position], before or after the function
      is called. More precisely, the following invariants must hold if the
      function returns correctly, in addition to the usual buffer invariants:
-     - [old(b.position) + more <= new(b.length)]
-     - [new(b.position) + more <= new(b.length)]
-     - [old(b.length) <= new(b.length)]
+     - [old(b.position) + more <= new(Bytes.length b.buffer)]
+     - [new(b.position) + more <= new(Bytes.length b.buffer)]
+     - [old(b.length) <= new(Bytes.length b.buffer)]
 
-     Note: [b.position + more <= old(b.length)] does *not*
+     Note: [b.position + more <= old(Bytes.length b.buffer)] does *not*
      hold in general, as it is precisely the case where you need
-     to call [resize] to increase [b.length].
+     to call [resize] to increase [Bytes.length b.buffer].
 
      Note: [assert] above does not mean that we know the conditions
      always hold, but that the function may return correctly
      only if they hold.
-
-     Note: the other functions in this module does not need
-     to be checked with this level of scrutiny, given that they
-     read/write the buffer immediately after checking that
-     [b.position + more <= b.length] hold or calling [resize].
   *)
+
+(* Whenever a function have a fast path with `unsafe_set, we need to read both
+  the position and buffer and perform the unsafe access on this immutable pair.
+  In case on racy access, we may read or write at a non-deterministic position
+  on a non-deterministic buffer; but the operation will be memory-safe.
+*)
 
 let add_char b c =
   let pos = b.position in
   let buffer = b.buffer in
-  if pos >= Bytes.length buffer then begin
+  if pos >= Bytes.length buffer then (
     resize b 1;
     Bytes.set b.buffer pos c
-  end else
-    Bytes.unsafe_set buffer pos c;
+  )
+  else Bytes.unsafe_set buffer pos c;
   b.position <- pos + 1
 
 let uchar_utf_8_byte_length_max = 4
@@ -163,15 +164,16 @@ let rec add_utf_16le_uchar b u =
   else (b.position <- pos + n)
 
 let add_substring b s offset len =
+  let position = b.position in
+  let buffer = b.buffer in
   if offset < 0 || len < 0 || offset > String.length s - len
   then invalid_arg "Buffer.add_substring/add_subbytes";
-  let new_position = b.position + len in
-  let buffer = b.buffer in
-  let position = b.position in
-  if new_position > Bytes.length buffer then begin
+  let new_position = position + len in
+  if new_position > Bytes.length buffer then (
     resize b len;
-    Bytes.blit_string s offset b.buffer b.position len
-  end else
+    Bytes.blit_string s offset b.buffer b.position len;
+  )
+  else
     Bytes.unsafe_blit_string s offset buffer position len;
   b.position <- new_position
 
@@ -180,14 +182,14 @@ let add_subbytes b s offset len =
 
 let add_string b s =
   let len = String.length s in
-  let new_position = b.position + len in
-  let buffer = b.buffer in
   let position = b.position in
-  if new_position > Bytes.length buffer then begin
+  let buffer = b.buffer in
+  let new_position = position + len in
+  if new_position > Bytes.length buffer then (
     resize b len;
-    Bytes.blit_string s 0 b.buffer b.position len
-  end else
-    Bytes.unsafe_blit_string s 0 buffer position len;
+    Bytes.blit_string s 0 b.buffer b.position len;
+  )
+  else Bytes.unsafe_blit_string s 0 buffer position len;
   b.position <- new_position
 
 let add_bytes b s = add_string b (Bytes.unsafe_to_string s)
@@ -317,7 +319,7 @@ let to_seq b =
     (* Note that b.position is not a constant and cannot be lifted out of aux *)
     if i >= b.position then Seq.Nil
     else
-      let x = Bytes.unsafe_get b.buffer i in
+      let x = Bytes.get b.buffer i in
       Seq.Cons (x, aux (i+1))
   in
   aux 0
@@ -327,7 +329,7 @@ let to_seqi b =
     (* Note that b.position is not a constant and cannot be lifted out of aux *)
     if i >= b.position then Seq.Nil
     else
-      let x = Bytes.unsafe_get b.buffer i in
+      let x = Bytes.get b.buffer i in
       Seq.Cons ((i,x), aux (i+1))
   in
   aux 0
@@ -345,33 +347,59 @@ external unsafe_set_int8 : bytes -> int -> int -> unit = "%bytes_unsafe_set"
 external unsafe_set_int16 : bytes -> int -> int -> unit = "%caml_bytes_set16u"
 external unsafe_set_int32 : bytes -> int -> int32 -> unit = "%caml_bytes_set32u"
 external unsafe_set_int64 : bytes -> int -> int64 -> unit = "%caml_bytes_set64u"
+external set_int8 : bytes -> int -> int -> unit = "%bytes_safe_set"
+external set_int16 : bytes -> int -> int -> unit = "%caml_bytes_set16"
+external set_int32 : bytes -> int -> int32 -> unit = "%caml_bytes_set32"
+external set_int64 : bytes -> int -> int64 -> unit = "%caml_bytes_set64"
+
 external swap16 : int -> int = "%bswap16"
 external swap32 : int32 -> int32 = "%bswap_int32"
 external swap64 : int64 -> int64 = "%bswap_int64"
 
 
 let add_int8 b x =
-  let new_position = b.position + 1 in
-  if new_position > Bytes.length b.buffer then resize b 1;
-  unsafe_set_int8 b.buffer b.position x;
+  let position = b.position in
+  let buffer = b.buffer in
+  let new_position = position + 1 in
+  if new_position > Bytes.length buffer then
+    (resize b 1;
+     set_int8 b.buffer b.position x
+    )
+  else
+    unsafe_set_int8 buffer position x;
   b.position <- new_position
 
 let add_int16_ne b x =
-  let new_position = b.position + 2 in
-  if new_position >  Bytes.length b.buffer then resize b 2;
-  unsafe_set_int16 b.buffer b.position x;
+  let position = b.position in
+  let buffer = b.buffer in
+  let new_position = position + 2 in
+  if new_position > Bytes.length buffer then (
+    resize b 2;
+    set_int16 b.buffer b.position x;
+  ) else
+    unsafe_set_int16 buffer position x;
   b.position <- new_position
 
 let add_int32_ne b x =
+  let position = b.position in
+  let buffer = b.buffer in
   let new_position = b.position + 4 in
-  if new_position >  Bytes.length b.buffer then resize b 4;
-  unsafe_set_int32 b.buffer b.position x;
+  if new_position > Bytes.length buffer then (
+    resize b 4;
+    set_int32 b.buffer b.position x
+  ) else
+    unsafe_set_int32 buffer position x;
   b.position <- new_position
 
 let add_int64_ne b x =
+  let position = b.position in
+  let buffer = b.buffer in
   let new_position = b.position + 8 in
-  if new_position >  Bytes.length b.buffer then resize b 8;
-  unsafe_set_int64 b.buffer b.position x;
+  if new_position > Bytes.length buffer then (
+    resize b 8;
+    set_int64 b.buffer b.position x;
+  ) else
+    unsafe_set_int64 buffer position x;
   b.position <- new_position
 
 let add_int16_le b x =
