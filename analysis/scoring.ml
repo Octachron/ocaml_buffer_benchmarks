@@ -60,7 +60,7 @@ let count ~quantiles ~scores ~participants file =
 
 
 
-let quantiles = [| 0.1; 0.25; 0.5; 0.9 |]
+let _quantiles = [| 0.1; 0.25; 0.5; 0.9 |]
 
 
 let std = 0
@@ -74,30 +74,71 @@ let participants = [|indirect;simplified;std;safe|]
 let pp_index ppf header scores i pos =
   let name = header.(pos) in
   let score = scores.(i) in
-  Format.fprintf ppf "| %s   | %d      |     %d   | %d      |@,"
-    name score.(0) score.(1) score.(2)
+  let total = Array.fold_left (+) 0 score in
+  let percent i = (100. *. float i) /. float total in
+  let other = total - score.(0) - score.(1) - score.(2) in
+  let padding ppf n =
+    for _i=1 to n do
+      Format.fprintf ppf " ";
+    done
+  in
+  Format.fprintf ppf "| %s%a| %3.1f%%    | %3.1f%%    | %3.1f%%    | %3.1f%% |@,"
+    name padding (12 - String.length name)
+    (percent score.(0))
+    (percent score.(1))
+    (percent score.(2))
+    (percent other)
 
 
 let pp header participants ppf scores =
-  Format.fprintf ppf "@[<v>|            |1st rank | 2nd rank | 3rd rank|@,";
+  Format.fprintf ppf "@[<v>|             | 1st rank | 2nd rank | 3rd rank | other |@,";
+  Format.fprintf ppf      "|-------------|----------|----------|----------|-------|@,";
+
   Array.iteri (pp_index ppf header scores) participants;
   Format.fprintf ppf "@,total tests: %d@]@."
     (Array.fold_left (+) 0 scores.(0))
 
+type quantile_kind =
+  | Low
+  | Median
+  | High
+  | All
+
+let parse_qkind = function
+  | "low" -> Low
+  | "median" -> Median
+  | "high" -> High
+  | "all" -> All
+  | _ -> failwith "Unknown option"
 
 let () =
+  let quantile_kind = ref All in
   let np = Array.length participants in
   let scores = Array.init np (fun _ -> Array.make np 0) in
   let header = ref None in
+  let quantiles () =
+    let qlow = [| 0.1 |] and qhigh = [| 0.9|] and median = [|0.5 |]
+    and all = [| 0.1; 0.25; 0.5; 0.75; 0.9 |] in
+    match !quantile_kind with
+    | All -> all
+    | Low -> qlow
+    | High -> qhigh
+    | Median -> median
+  in
   let analyze_file file =
     let new_header, contents = read_file file in
     begin match !header with
     | None -> header := Some new_header
     | Some h -> assert (h = new_header)
     end;
-    count ~scores ~participants ~quantiles contents
+    count ~scores ~participants ~quantiles:(quantiles ()) contents
   in
-  let () = Arg.parse [] analyze_file "scoring <file list>" in
+  let arg_qkind s = quantile_kind := parse_qkind s in
+  let () = Arg.parse ["-quantile", Arg.String arg_qkind, "which quantiles?" ]
+      analyze_file
+      "scoring <file list>"
+  in
+
   match !header with
   | None -> assert false
   | Some header ->
