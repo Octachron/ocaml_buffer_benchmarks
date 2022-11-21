@@ -1,3 +1,4 @@
+[@@@warning "-32"]
 
 let tokenize x =
   x |> String.split_on_char ' ' |> List.filter (fun x -> String.trim x <> "")
@@ -74,20 +75,32 @@ let participants = [|indirect;simplified;std;safe|]
 let pp_index ppf header scores i pos =
   let name = header.(pos) in
   let score = scores.(i) in
+  let len = Array.length score in
   let total = Array.fold_left (+) 0 score in
-  let percent i = (100. *. float i) /. float total in
-  let other = total - score.(0) - score.(1) - score.(2) in
+  let per x = (100. *. float x) /. float total in
+  let percent i =
+    if i >= len then None
+    else Some (per score.(i))
+  in
+  let opt ppf = function
+    | None -> Format.fprintf ppf "N/A"
+    | Some x -> Format.fprintf ppf "%3.1f%%" x
+  in
+  let other =
+    if len >= 3 then
+      Some (per @@ total - score.(0) - score.(1) - score.(2))
+    else None in
   let padding ppf n =
     for _i=1 to n do
       Format.fprintf ppf " ";
     done
   in
-  Format.fprintf ppf "| %s%a| %3.1f%%    | %3.1f%%    | %3.1f%%    | %3.1f%% |@,"
+  Format.fprintf ppf "| %s%a| %a    | %a    | %a    | %a |@,"
     name padding (12 - String.length name)
-    (percent score.(0))
-    (percent score.(1))
-    (percent score.(2))
-    (percent other)
+    opt (percent 0)
+    opt (percent 1)
+    opt (percent 2)
+    opt other
 
 
 let pp header participants ppf scores =
