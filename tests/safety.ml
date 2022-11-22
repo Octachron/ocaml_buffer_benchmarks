@@ -33,5 +33,5 @@ end
 
 module Safe = Test(Buffers.Safe)
 module Safe_nospill = Test(Buffers.Safe_nospill)
-module Data_Safe = Test(Buffers.Data)
+module Data_Safe = Test(Buffers.Indirection)
 module Simplified = Test(Buffers.Simplified)
