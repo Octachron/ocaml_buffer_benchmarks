@@ -121,10 +121,12 @@ let add_char b c =
   let {buffer;length} = b.inner in
   if pos >= length then (
     let inner = extended_inner_buffer b 1 in
-    Bytes.unsafe_set inner.buffer pos c
-  ) else
+    Bytes.unsafe_set inner.buffer pos c;
+    b.position <- pos + 1
+  ) else begin
     Bytes.unsafe_set buffer pos c;
-  b.position <- pos + 1
+    b.position <- pos + 1
+  end
 
 let uchar_utf_8_byte_length_max = 4
 let uchar_utf_16_byte_length_max = 4
@@ -161,10 +163,12 @@ let add_substring b s offset len =
   let new_position = position + len in
   if new_position > length then (
     let inner = extended_inner_buffer b len in
-    Bytes.unsafe_blit_string s offset inner.buffer position len
-  ) else
+    Bytes.unsafe_blit_string s offset inner.buffer position len;
+    b.position <- new_position;
+  ) else begin
     Bytes.unsafe_blit_string s offset buffer position len;
-  b.position <- new_position
+    b.position <- new_position
+  end
 
 let add_subbytes b s offset len =
   add_substring b (Bytes.unsafe_to_string s) offset len
@@ -177,9 +181,11 @@ let add_string b s =
   if new_position > length then (
     let inner = extended_inner_buffer b len in
     Bytes.unsafe_blit_string s 0 inner.buffer position len;
-  ) else
+    b.position <- new_position
+  ) else begin
     Bytes.unsafe_blit_string s 0 buffer position len;
-  b.position <- new_position
+    b.position <- new_position
+  end
 
 let add_bytes b s = add_string b (Bytes.unsafe_to_string s)
 

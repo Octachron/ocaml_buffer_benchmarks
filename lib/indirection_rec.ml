@@ -118,9 +118,10 @@ let rec add_char b c =
   if pos >= length then (
     resize b 1;
     add_char b c
-  ) else
+  ) else begin
     Bytes.unsafe_set buffer pos c;
-  b.position <- pos + 1
+    b.position <- pos + 1
+  end
 
 let uchar_utf_8_byte_length_max = 4
 let uchar_utf_16_byte_length_max = 4
@@ -158,9 +159,10 @@ let rec add_substring b s offset len =
   if new_position > length then (
     resize b len;
     add_substring b s offset len
-  ) else
+  ) else begin
     Bytes.unsafe_blit_string s offset buffer position len;
-  b.position <- new_position
+    b.position <- new_position
+  end
 
 let add_subbytes b s offset len =
   add_substring b (Bytes.unsafe_to_string s) offset len
@@ -173,9 +175,10 @@ let rec add_string b s =
   if new_position > length then (
     resize b len;
     add_string b s
-  ) else
+  ) else begin
     Bytes.unsafe_blit_string s 0 buffer position len;
-  b.position <- new_position
+    b.position <- new_position
+  end
 
 let add_bytes b s = add_string b (Bytes.unsafe_to_string s)
 
