@@ -5,3 +5,6 @@ let safe_nospill = Safe_nospill.benchmark
 let data = Data_safe.benchmark
 let simplified = Simplified.benchmark
 let full_indirection = Full_indirection.benchmark
+let indirection_rec = Indirection_rec.benchmark
+let indirection_resize_once = Indirection_resize_once.benchmark
+let indirection_resize_once_spill = Indirection_resize_once_spill.benchmark
