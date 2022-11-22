@@ -2,6 +2,7 @@ open Runner
 
 let (let*) x f = List.concat_map f x
 let dir = "data"
+let round = Two
 
 let param_map params ppf =
   let pp ppf (key,v) = Format.fprintf ppf {|%s=%d|} key v in
@@ -10,13 +11,18 @@ let param_map params ppf =
     pp
     ppf params
 
+let plot_script = function
+  | One -> "plot/quantiles.plot"
+  | Two -> "plot/quantiles_2.plot"
+
 let plot samples mode params () =
   let command = Format.asprintf
-      {|gnuplot -e "mode=\"%s\"" -e "nsample=%d" -e "params=\"%t\"" plot/quantiles.plot|}
+      {|gnuplot -e "mode=\"%s\"" -e "nsample=%d" -e "params=\"%t\"" %s|}
       (mode_name mode) samples
-      params
+      params (plot_script round)
   in
   Sys.command command
+
 
 
 module Basic = struct
@@ -50,13 +56,14 @@ module Basic = struct
       ]
     in
     let out =
-      Format.asprintf "%s/mode=%s_%t_samples=%d.data"
+      Format.asprintf "%s/round=%d_mode=%s_%t_samples=%d.data"
         dir
+        (round_ordinal round)
         (mode_name mode)
         params
         samples
     in
-    [plot samples mode params, { samples; out = Some out; parameters; mode }]
+    [plot samples mode params, { round; samples; out = Some out; parameters; mode }]
 end
 
 module Composite = struct
@@ -73,13 +80,14 @@ module Composite = struct
     let* parameters = set in
     let params = param_map ["size", parameters.size] in
     let out =
-      Format.asprintf "%s/mode=%s_%t_samples=%d.data"
+      Format.asprintf "%s/round=%d_mode=%s_%t_samples=%d.data"
         dir
+        (round_ordinal round)
         (mode_name mode)
         params
         samples
     in
-    [plot samples mode params, { samples; out=Some out; parameters; mode }]
+    [plot samples mode params, { samples; round; out=Some out; parameters; mode }]
 end
 
 let with_plot = ref false
