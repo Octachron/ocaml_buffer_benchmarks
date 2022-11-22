@@ -9,7 +9,7 @@ let impls_first_round = Variants.[|
     std_nospill;
     safe;
     safe_nospill;
-    data;
+    indirection;
     simplified;
 |]
 
